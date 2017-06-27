@@ -2,12 +2,15 @@
 
 import numpy as np
 import json
+import os
 
-
+root_dir = r'D:\github\datasets\yelp-review-dataset'
+# download from https://raw.githubusercontent.com/intuinno/YelpVis/master/0DataSet/yelp_academic_dataset_review.json
+dataset_path = os.path.join(root_dir, 'yelp_academic_dataset_review.json')
 def load_yelp(alphabet):
     examples = []
     labels = []
-    with open('./yelp-review-dataset/yelp_academic_dataset_review.json') as f:
+    with open(dataset_path) as f:
         i = 0
         for line in f:
             review = json.loads(line)

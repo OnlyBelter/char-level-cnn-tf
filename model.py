@@ -133,7 +133,9 @@ class CharCNN(object):
         # ================ Loss and Accuracy ================
         # CalculateMean cross-entropy loss
         with tf.name_scope("loss"):
-            losses = tf.nn.softmax_cross_entropy_with_logits(scores, self.input_y)
+            # add parameters' name
+            # https://github.com/tensorflow/tensorflow/issues/1511
+            losses = tf.nn.softmax_cross_entropy_with_logits(logits=scores, labels=self.input_y)
             self.loss = tf.reduce_mean(losses) + l2_reg_lambda * l2_loss
 
         # Accuracy
