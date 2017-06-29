@@ -8,7 +8,7 @@ class CharCNN(object):
     A CNN for text classification.
     based on the Character-level Convolutional Networks for Text Classification paper.
     """
-    def __init__(self, num_classes=2, filter_sizes=(7, 7, 3, 3, 3, 3), num_filters_per_size=256,
+    def __init__(self, num_classes=5, filter_sizes=(7, 7, 3, 3, 3, 3), num_filters_per_size=256,
                  l2_reg_lambda=0.0, sequence_max_length=1014, num_quantized_chars=70):
 
         # Placeholders for input, output and dropout

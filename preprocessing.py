@@ -25,12 +25,28 @@ def load_yelp(alphabet):
             if stars <= 5:
                 labels.append(stars)
                 examples.append(text_int8_repr)
-
             i += 1
             if i % 10000 == 0:
                 print("Non-neutral instances processed: " + str(i))
-    return examples, labels
+    labels_vec = convert_y_to_logic_vector(labels, class_num=5)
+    return examples, labels_vec
 
+
+def convert_y_to_logic_vector(y_list, class_num, start_inx=1):
+    """
+    convert 4 to [0, 0, 0, 1]
+    :param y_list:
+    :return:
+    """
+    new_y = []
+    for i in y_list:
+        i_vec = [0] * class_num
+        i_vec[i-start_inx] = 1
+        new_y.append(i_vec)
+    return new_y
+
+# a = [1, 4, 3, 1, 4, 1, 2, 4, 3, 2]
+# print(convert_y_to_logic_vector(a, class_num=4))
 
 def extract_end(char_seq):
     if len(char_seq) > 1014:

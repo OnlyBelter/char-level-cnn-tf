@@ -107,7 +107,7 @@ with tf.Graph().as_default():
             for batch_inx in range(n_batches):
                 X_batch, y_batch = preprocessing.fetch_batch(x_train, y_train,
                                                              epoch, FLAGS.batch_size, batch_inx)
-                # print(y_batch)
+                print(y_batch)
                 feed_dict = {
                     cnn.input_x: np.float32(X_batch),
                     cnn.input_y: np.float32(y_batch),
