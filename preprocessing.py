@@ -15,21 +15,20 @@ def load_yelp(alphabet):
         i = 0
         for line in f:
             review = json.loads(line)
+            # print(review)
             stars = review["stars"]
             text = review["text"]
-            if stars != 3:
-                text_end_extracted = extract_end(list(text.lower()))
-                padded = pad_sentence(text_end_extracted)
-                text_int8_repr = string_to_int8_conversion(padded, alphabet)
-                if stars == 1 or stars == 2:
-                    labels.append([1, 0])
-                    examples.append(text_int8_repr)
-                elif stars == 4 or stars == 5:
-                    labels.append([0, 1])
-                    examples.append(text_int8_repr)
-                i += 1
-                if i % 10000 == 0:
-                    print("Non-neutral instances processed: " + str(i))
+            # if stars != 3:
+            text_end_extracted = extract_end(list(text.lower()))
+            padded = pad_sentence(text_end_extracted)
+            text_int8_repr = string_to_int8_conversion(padded, alphabet)
+            if stars <= 5:
+                labels.append(stars)
+                examples.append(text_int8_repr)
+
+            i += 1
+            if i % 10000 == 0:
+                print("Non-neutral instances processed: " + str(i))
     return examples, labels
 
 
@@ -51,10 +50,10 @@ def string_to_int8_conversion(char_seq, alphabet):
     return x
 
 
-def get_batched_one_hot(char_seqs_indices, labels, start_index, end_index):
+def get_batched_one_hot(char_seqs, labels):
     alphabet = "abcdefghijklmnopqrstuvwxyz0123456789-,;.!?:'\"/\\|_@#$%^&*~`+-=<>()[]{}\n"
-    x_batch = char_seqs_indices[start_index:end_index]
-    y_batch = labels[start_index:end_index]
+    x_batch = char_seqs[:]
+    y_batch = labels[:]
     x_batch_one_hot = np.zeros(shape=[len(x_batch), len(alphabet), len(x_batch[0]), 1])
     for example_i, char_seq_indices in enumerate(x_batch):
         for char_pos_in_seq, char_seq_char_ind in enumerate(char_seq_indices):
@@ -74,27 +73,15 @@ def load_data():
     return [x, y]
 
 
-def batch_iter(x, y, batch_size, num_epochs, shuffle=True):
+def fetch_batch(X, y, epoch, batch_size, batch_index):
     """
-    Generates a batch iterator for a dataset.
+    Generates a batch
     """
-    # data = np.array(data)
-    data_size = len(x)
-    num_batches_per_epoch = int(data_size/batch_size) + 1
-    for epoch in range(num_epochs):
-        print("In epoch >> " + str(epoch + 1))
-        print("num batches per epoch is: " + str(num_batches_per_epoch))
-        # Shuffle the data at each epoch
-        if shuffle:
-            shuffle_indices = np.random.permutation(np.arange(data_size))
-            x_shuffled = x[shuffle_indices]
-            y_shuffled = y[shuffle_indices]
-        else:
-            x_shuffled = x
-            y_shuffled = y
-        for batch_num in range(num_batches_per_epoch):
-            start_index = batch_num * batch_size
-            end_index = min((batch_num + 1) * batch_size, data_size)
-            x_batch, y_batch = get_batched_one_hot(x_shuffled, y_shuffled, start_index, end_index)
-            batch = list(zip(x_batch, y_batch))
-            yield batch
+    # print(X.shape)
+    m, n = X.shape  # samples size, features number
+    n_batches = int(np.ceil(m/batch_size))
+    np.random.seed(epoch * n_batches + batch_index)
+    indices = np.random.randint(m, size=batch_size)
+    X_batch = X[indices]
+    y_batch = y[indices]
+    return get_batched_one_hot(X_batch, y_batch)
