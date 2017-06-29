@@ -5,6 +5,7 @@ import json
 import os
 
 root_dir = r'D:\github\datasets\yelp-review-dataset'
+# root_dir = r'/mnt/home/xiongx/web/yelp-review-dataset'
 # download from https://raw.githubusercontent.com/intuinno/YelpVis/master/0DataSet/yelp_academic_dataset_review.json
 dataset_path = os.path.join(root_dir, 'yelp_academic_dataset_review.json')
 def load_yelp(alphabet):

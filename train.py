@@ -21,8 +21,8 @@ tf.flags.DEFINE_float("l2_reg_lambda", 0.0, "L2 regularizaion lambda (default: 0
 # Training parameters
 tf.flags.DEFINE_integer("batch_size", 128, "Batch Size (default: 128)")
 tf.flags.DEFINE_integer("num_epochs", 50, "Number of training epochs (default: 200)")
-tf.flags.DEFINE_integer("evaluate_every", 5000, "Evaluate model on dev set after this many steps (default: 100)")
-tf.flags.DEFINE_integer("checkpoint_every", 1000, "Save model after this many steps (default: 100)")
+tf.flags.DEFINE_integer("evaluate_every", 1000, "Evaluate model on dev set after this many steps (default: 100)")
+tf.flags.DEFINE_integer("checkpoint_every", 200, "Save model after this many steps (default: 100)")
 # Misc Parameters
 tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device placement")
 tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on devices")
@@ -132,7 +132,7 @@ with tf.Graph().as_default():
             """
             dev_size = len(x_batch)
             max_batch_size = 500
-            num_batches = dev_size/max_batch_size
+            num_batches = int(dev_size/max_batch_size)
             acc = []
             losses = []
             print("Number of batches in dev set is " + str(num_batches))
