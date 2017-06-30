@@ -113,7 +113,8 @@ with tf.Graph().as_default():
                     cnn.input_y: np.float32(y_batch),
                     cnn.dropout_keep_prob: FLAGS.dropout_keep_prob
                 }
-                _, loss, accuracy = sess.run([train_op, cnn.loss, cnn.accuracy], feed_dict)
+                _, loss, accuracy, input_y_class, y_pred = sess.run([train_op, cnn.loss, cnn.accuracy,
+                                              tf.argmax(cnn.input_y, 1), cnn.predictions], feed_dict)
                 if batch_inx % 10 == 0:
                     print('Epoch', epoch, 'batch_inx', batch_inx, 'MSE =', loss, 'Accuracy =', accuracy)
                     # save model and parameters

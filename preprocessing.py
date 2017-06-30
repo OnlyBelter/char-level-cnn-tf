@@ -89,7 +89,7 @@ def load_data():
     return [x, y]
 
 
-def fetch_batch(X, y, epoch, batch_size, batch_index):
+def fetch_batch(X, y, epoch=0, batch_size=128, batch_index=0):
     """
     Generates a batch
     """
@@ -100,4 +100,13 @@ def fetch_batch(X, y, epoch, batch_size, batch_index):
     indices = np.random.randint(m, size=batch_size)
     X_batch = X[indices]
     y_batch = y[indices]
+    return get_batched_one_hot(X_batch, y_batch)
+
+
+def fetch_batch_for_predict(X, y, batch_size=-1):
+    """
+    process data for predict
+    """
+    X_batch = X[:batch_size]
+    y_batch = y[:batch_size]
     return get_batched_one_hot(X_batch, y_batch)

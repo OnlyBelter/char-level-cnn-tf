@@ -129,7 +129,7 @@ class CharCNN(object):
             # l2_loss += tf.nn.l2_loss(b)
 
             scores = tf.nn.xw_plus_b(fc_2_output, W, b, name="output")
-            predictions = tf.argmax(scores, 1, name="predictions")
+            self.predictions = tf.argmax(scores, 1, name="predictions")
         # ================ Loss and Accuracy ================
         # CalculateMean cross-entropy loss
         with tf.name_scope("loss"):
@@ -140,5 +140,5 @@ class CharCNN(object):
 
         # Accuracy
         with tf.name_scope("accuracy"):
-            correct_predictions = tf.equal(predictions, tf.argmax(self.input_y, 1))
+            correct_predictions = tf.equal(self.predictions, tf.argmax(self.input_y, 1))
             self.accuracy = tf.reduce_mean(tf.cast(correct_predictions, "float"), name="accuracy")
