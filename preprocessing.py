@@ -2,16 +2,14 @@
 
 import numpy as np
 import json
+import unicodedata
 import os
 
-root_dir = r'D:\github\datasets\yelp-review-dataset'
-# root_dir = r'/mnt/home/xiongx/web/yelp-review-dataset'
-# download from https://raw.githubusercontent.com/intuinno/YelpVis/master/0DataSet/yelp_academic_dataset_review.json
-dataset_path = os.path.join(root_dir, 'yelp_academic_dataset_review.json')
-def load_yelp(alphabet):
+
+def load_yelp(alphabet, data_path):
     examples = []
     labels = []
-    with open(dataset_path) as f:
+    with open(data_path) as f:
         i = 0
         for line in f:
             review = json.loads(line)
@@ -28,7 +26,32 @@ def load_yelp(alphabet):
             i += 1
             if i % 10000 == 0:
                 print("Non-neutral instances processed: " + str(i))
-    labels_vec = convert_y_to_logic_vector(labels, class_num=5)
+    labels_vec = convert_y_to_logic_vector(labels, class_num=5, start_inx=0)
+    return examples, labels_vec
+
+
+def load_movie_comment(alphabet, data_path):
+    examples = []
+    labels = []
+    with open(data_path) as f:
+        i = 0
+        for line in f:
+            each_line = line.strip()
+            # print(each_line)
+            stars = int(each_line[0])
+            text = each_line[1:].strip().lower()
+            # if stars != 3:
+            text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('utf-8')
+            text_end_extracted = extract_end(list(text.lower()))
+            padded = pad_sentence(text_end_extracted)
+            text_int8_repr = string_to_int8_conversion(padded, alphabet)
+            if stars <= 5:
+                labels.append(stars)
+                examples.append(text_int8_repr)
+            i += 1
+            if i % 2000 == 0:
+                print("Non-neutral instances processed: " + str(i))
+    labels_vec = convert_y_to_logic_vector(labels, class_num=5, start_inx=0)
     return examples, labels_vec
 
 
@@ -78,10 +101,10 @@ def get_batched_one_hot(char_seqs, labels):
     return [x_batch_one_hot, y_batch]
 
 
-def load_data():
+def load_data(data_path):
     # TODO Add the new line character later for the yelp'cause it's a multi-line review
     alphabet = "abcdefghijklmnopqrstuvwxyz0123456789-,;.!?:'\"/\\|_@#$%^&*~`+-=<>()[]{}\n"
-    examples, labels = load_yelp(alphabet)
+    examples, labels = load_movie_comment(alphabet, data_path)
     x = np.array(examples, dtype=np.int8)
     y = np.array(labels, dtype=np.int8)
     print("x_char_seq_ind=" + str(x.shape))
@@ -89,15 +112,22 @@ def load_data():
     return [x, y]
 
 
-def fetch_batch(X, y, epoch=0, batch_size=128, batch_index=0):
+def fetch_batch(X, y, batch_size=128, class_num=5):
     """
-    Generates a batch
+    Generates a batch, and each class has equal samples
     """
-    # print(X.shape)
-    m, n = X.shape  # samples size, features number
-    n_batches = int(np.ceil(m/batch_size))
-    np.random.seed(epoch * n_batches + batch_index)
-    indices = np.random.randint(m, size=batch_size)
+    n_each_class = int(np.ceil(batch_size/class_num))
+    n_each_class_ = np.random.randint(n_each_class-10, n_each_class+10, 5)
+    y_tag = y.argmax(axis=1)
+    class2inx = {}  # class to indices
+    for i in range(class_num):
+        inx = np.where(y_tag==i)
+        np.random.shuffle(inx[0])
+        class2inx[i] = list(inx[0])
+    indices = []
+    for i in class2inx:
+        indices += class2inx[i][:n_each_class_[i]]
+    np.random.shuffle(indices)
     X_batch = X[indices]
     y_batch = y[indices]
     return get_batched_one_hot(X_batch, y_batch)

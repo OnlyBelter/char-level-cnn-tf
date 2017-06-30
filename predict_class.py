@@ -40,19 +40,25 @@ print("")
 # ==================================================
 
 # Load data
+data_dir = r'data'
+# can download yelp dataset from below url
+# https://raw.githubusercontent.com/intuinno/YelpVis/master/0DataSet/yelp_academic_dataset_review.json
+training_data_path = os.path.join(data_dir, 'train.txt')
+dev_data_path = os.path.join(data_dir, 'dev.txt')
 print("Loading data...")
-x, y = preprocessing.load_data()
+x, y = preprocessing.load_data(data_path=dev_data_path)
 # Randomly shuffle data
 np.random.seed(10)
-shuffle_indices = np.random.permutation(np.arange(len(y)))
-x_shuffled = x[shuffle_indices]
-y_shuffled = y[shuffle_indices]
+# shuffle_indices = np.random.permutation(np.arange(len(y)))
+# x_shuffled = x[shuffle_indices]
+# y_shuffled = y[shuffle_indices]
 # Split train/test set
-n_dev_samples = int(len(y) * 0.3)
+# n_dev_samples = int(len(y) * 0.3)
 # TODO: Create a fuckin' correct cross validation procedure
-x_train, x_dev = x_shuffled[:-n_dev_samples], x_shuffled[-n_dev_samples:]
-y_train, y_dev = y_shuffled[:-n_dev_samples], y_shuffled[-n_dev_samples:]
-print("Train/Dev split: {:d}/{:d}".format(len(y_train), len(y_dev)))
+x_dev = x
+y_dev = y
+print("Dev data sample number: {:d}".format(len(y_dev)))
+
 
 
 # Training
@@ -61,9 +67,9 @@ print("Train/Dev split: {:d}/{:d}".format(len(y_train), len(y_dev)))
 with tf.Graph().as_default():
     ## define training computation graph
     learning_rate = 0.01
-    m, n = x_train.shape
-    print('x_train\'s shape is', x_train.shape)
-    print(x_train[0])
+    m, n = x_dev.shape
+    print('x_dev\'s shape is', x_dev.shape)
+    print(x_dev[0])
     session_conf = tf.ConfigProto(
       allow_soft_placement=FLAGS.allow_soft_placement,
       log_device_placement=FLAGS.log_device_placement)
@@ -95,21 +101,19 @@ with tf.Graph().as_default():
     current_loss = 10
 
     with sess.as_default():
-
         # load saved model
-        saver.restore(sess, 'runs/20170629171223/cv/my_model_current_best.ckpt')
-
+        saver.restore(sess, 'cv/my_model_current_best.ckpt')
         # predict by saved model...
         X_batch, y_batch = preprocessing.fetch_batch_for_predict(
-            x_dev, y_dev, batch_size=20)
-        print(y_batch)
+            x_dev, y_dev, batch_size=1000)
+        # print(y_batch)
         feed_dict = {
             cnn.input_x: np.float32(X_batch),
             cnn.input_y: np.float32(y_batch),
             cnn.dropout_keep_prob: FLAGS.dropout_keep_prob
         }
         # no need to train
-        loss, accuracy, input_y_class, y_pred = sess.run([cnn.loss, cnn.accuracy,
-                                      tf.argmax(cnn.input_y, 1), cnn.predictions], feed_dict)
+        loss, accuracy, input_y_class, y_pred, scores = sess.run([cnn.loss, cnn.accuracy,
+                                      tf.argmax(cnn.input_y, 1), cnn.predictions, cnn.scores], feed_dict)
         print('MSE =', loss, 'Accuracy =', accuracy,
               'y = ', input_y_class, 'y_pred = ', y_pred)
